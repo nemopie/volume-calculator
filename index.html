@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Container Volume and Wall Thickness Calculator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 20px auto;
+        line-height: 1.5;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input {
+        width: 100%;
+        max-width: 250px;
+      }
+      button {
+        margin-top: 15px;
+        padding: 8px 16px;
+        cursor: pointer;
+      }
+      .results {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        white-space: pre-line;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Container Volume and Wall Thickness Calculator</h1>
+
+    <label>
+      Mass of container (grams):
+      <input id="mass" type="number" step="any" />
+    </label>
+
+    <label>
+      Density of material (g/in³):
+      <input id="density" type="number" step="any" value="15.61" />
+    </label>
+
+    <label>
+      Surface area of model (in²):
+      <input id="surfaceArea" type="number" step="any" />
+    </label>
+
+    <label>
+      Overall height of bottle (in):
+      <input id="overallHeight" type="number" step="any" />
+    </label>
+
+    <label>
+      Fill height from top of bottle (in):
+      <input id="fillHeightFromTop" type="number" step="any" />
+    </label>
+
+    <button onclick="runCalculator()">Calculate</button>
+
+    <div class="results" id="results"></div>
+
+    <script>
+      // ---- Direct translations of your Python functions ----
+      function calculateVolumeFromMass(mass, density = 15.61) {
+        return mass / density;
+      }
+
+      function convertVolumeToOunces(volumeInCubicInches) {
+        const conversionFactor = 0.554113; // in³ to fl oz
+        return volumeInCubicInches * conversionFactor;
+      }
+
+      function calculateWallThickness(volume, surfaceArea) {
+        return volume / surfaceArea;
+      }
+
+      function calculateInnerDimensions(outerDimension, wallThickness) {
+        return outerDimension - 2 * wallThickness;
+      }
+
+      function calculateInnerVolume(innerSurfaceArea, innerHeight) {
+        return innerSurfaceArea * innerHeight;
+      }
+
+      function calculateFillVolume(innerVolume, innerHeight, fillHeightFromTop) {
+        const filledHeight = innerHeight - fillHeightFromTop;
+        return innerVolume * (filledHeight / innerHeight);
+      }
+
+      // ---- Main "script" translated for the browser ----
+      function runCalculator() {
+        const mass = parseFloat(document.getElementById("mass").value);
+        const density = parseFloat(document.getElementById("density").value);
+        const surfaceArea = parseFloat(document.getElementById("surfaceArea").value);
+        const overallHeight = parseFloat(document.getElementById("overallHeight").value);
+        const fillHeightFromTop = parseFloat(
+          document.getElementById("fillHeightFromTop").value
+        );
+
+        const resultsDiv = document.getElementById("results");
+
+        // Basic validation
+        if (
+          isNaN(mass) ||
+          isNaN(density) ||
+          isNaN(surfaceArea) ||
+          isNaN(overallHeight) ||
+          isNaN(fillHeightFromTop)
+        ) {
+          resultsDiv.textContent = "Please fill in all fields with valid numbers.";
+          return;
+        }
+
+        // Step 2: material volume
+        const materialVolume = calculateVolumeFromMass(mass, density);
+
+        // Step 3: wall thickness
+        const wallThickness = calculateWallThickness(materialVolume, surfaceArea);
+
+        // Step 4: inner surface area and inner height
+        const innerSurfaceArea = calculateInnerDimensions(surfaceArea, wallThickness);
+        const innerHeight = calculateInnerDimensions(overallHeight, wallThickness);
+
+        // Step 5: inner volume
+        const innerVolume = calculateInnerVolume(innerSurfaceArea, innerHeight);
+
+        // Step 6: overflow volume to ounces
+        const innerVolumeInOunces = convertVolumeToOunces(innerVolume);
+
+        // Step 8: fill volume (from fill level down to bottom)
+        const calculatedFillVolume = calculateFillVolume(
+          innerVolume,
+          innerHeight,
+          fillHeightFromTop
+        );
+
+        // Step 9: fill volume in ounces
+        const fillVolumeInOunces = convertVolumeToOunces(calculatedFillVolume);
+
+        // Build result text (mimics your print() lines)
+        const output =
+          "Calculated material volume: " +
+          materialVolume.toFixed(4) +
+          " in³\n" +
+          "Calculated average wall thickness: " +
+          wallThickness.toFixed(4) +
+          " in\n" +
+          "Calculated inner surface area: " +
+          innerSurfaceArea.toFixed(4) +
+          " in²\n" +
+          "Calculated inner height: " +
+          innerHeight.toFixed(4) +
+          " in\n" +
+          "Calculated true inner (overflow) volume: " +
+          innerVolume.toFixed(4) +
+          " in³\n" +
+          "Overflow volume in fluid ounces: " +
+          innerVolumeInOunces.toFixed(4) +
+          " oz\n" +
+          "Calculated fill level volume (from fill level down): " +
+          calculatedFillVolume.toFixed(4) +
+          " in³\n" +
+          "Fill level volume in fluid ounces: " +
+          fillVolumeInOunces.toFixed(4) +
+          " oz";
+
+        resultsDiv.textContent = output;
+      }
+    </script>
+  </body>
+</html>
